@@ -1,5 +1,6 @@
 
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NavbarProps {
   activeTab: 'stories' | 'messages' | 'profile';
@@ -7,6 +8,8 @@ interface NavbarProps {
 }
 
 const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
+  const { signOut } = useAuth();
+  
   const tabs = [
     {
       id: 'stories' as const,
@@ -64,6 +67,17 @@ const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
               )}
             </button>
           ))}
+          
+          {/* Bouton de déconnexion */}
+          <button
+            onClick={signOut}
+            className="flex flex-col items-center py-2 px-4 rounded-lg transition-all duration-200 text-muted-foreground hover:text-red-500"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="text-xs mt-1 font-medium">Sortir</span>
+          </button>
         </div>
       </div>
     </nav>

@@ -21,12 +21,25 @@ interface StoryCardProps {
 
 const StoryCard = ({ story, onClick }: StoryCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
   const [likesCount, setLikesCount] = useState(story.likes);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isDisliked) {
+      setIsDisliked(false);
+    }
     setIsLiked(!isLiked);
     setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+  };
+
+  const handleDislike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLiked) {
+      setIsLiked(false);
+      setLikesCount(prev => prev - 1);
+    }
+    setIsDisliked(!isDisliked);
   };
 
   return (
@@ -90,6 +103,20 @@ const StoryCard = ({ story, onClick }: StoryCardProps) => {
               </svg>
             </button>
             <span className="text-xs font-medium">{likesCount.toLocaleString()}</span>
+
+            <button 
+              onClick={handleDislike}
+              className={cn(
+                "p-3 rounded-full transition-all duration-200",
+                isDisliked 
+                  ? "bg-red-500 text-white scale-110" 
+                  : "bg-white/20 backdrop-blur-sm hover:bg-white/30"
+              )}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
             <button className="p-3 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

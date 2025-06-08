@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import StoryCard from './StoryCard';
 import TrendingSection from './TrendingSection';
+import SubscriptionsSection from './SubscriptionsSection';
 import StoryViewer from './StoryViewer';
 
 const StoriesModule = () => {
@@ -78,6 +79,7 @@ const StoriesModule = () => {
 
   return (
     <div className="h-full bg-gradient-to-b from-background to-muted/20">
+      <SubscriptionsSection />
       <TrendingSection />
       
       <div className="space-y-1">

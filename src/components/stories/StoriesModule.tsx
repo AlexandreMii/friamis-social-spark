@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import StoryCard from './StoryCard';
 import TrendingSection from './TrendingSection';
+import StoryViewer from './StoryViewer';
 
 const StoriesModule = () => {
   const [stories] = useState([
@@ -40,12 +41,45 @@ const StoriesModule = () => {
     }
   ]);
 
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
+
+  const handleStoryClick = (index: number) => {
+    setSelectedStoryIndex(index);
+  };
+
+  const handleCloseViewer = () => {
+    setSelectedStoryIndex(null);
+  };
+
+  const handleNextStory = () => {
+    if (selectedStoryIndex !== null && selectedStoryIndex < stories.length - 1) {
+      setSelectedStoryIndex(selectedStoryIndex + 1);
+    }
+  };
+
+  const handlePrevStory = () => {
+    if (selectedStoryIndex !== null && selectedStoryIndex > 0) {
+      setSelectedStoryIndex(selectedStoryIndex - 1);
+    }
+  };
+
+  if (selectedStoryIndex !== null) {
+    return (
+      <StoryViewer
+        story={stories[selectedStoryIndex]}
+        onClose={handleCloseViewer}
+        onNext={handleNextStory}
+        onPrev={handlePrevStory}
+        canGoNext={selectedStoryIndex < stories.length - 1}
+        canGoPrev={selectedStoryIndex > 0}
+      />
+    );
+  }
+
   return (
     <div className="h-full bg-gradient-to-b from-background to-muted/20">
-      {/* Trending Section */}
       <TrendingSection />
       
-      {/* Stories Feed */}
       <div className="space-y-1">
         {stories.map((story, index) => (
           <div 
@@ -53,7 +87,10 @@ const StoriesModule = () => {
             className="animate-fade-in"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <StoryCard story={story} />
+            <StoryCard 
+              story={story} 
+              onClick={() => handleStoryClick(index)}
+            />
           </div>
         ))}
       </div>

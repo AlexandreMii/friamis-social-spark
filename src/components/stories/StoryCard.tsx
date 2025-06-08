@@ -16,19 +16,24 @@ interface Story {
 
 interface StoryCardProps {
   story: Story;
+  onClick?: () => void;
 }
 
-const StoryCard = ({ story }: StoryCardProps) => {
+const StoryCard = ({ story, onClick }: StoryCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(story.likes);
 
-  const handleLike = () => {
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsLiked(!isLiked);
     setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
   };
 
   return (
-    <div className="relative h-screen w-full bg-black overflow-hidden">
+    <div 
+      className="relative h-screen w-full bg-black overflow-hidden cursor-pointer"
+      onClick={onClick}
+    >
       {/* Video/Image Background */}
       <div className="absolute inset-0">
         <img 
@@ -105,7 +110,7 @@ const StoryCard = ({ story }: StoryCardProps) => {
 
       {/* Play Indicator */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 animate-pulse">
+        <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
           <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
           </svg>

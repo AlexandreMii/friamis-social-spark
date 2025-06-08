@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface Message {
   id: number;
@@ -8,6 +8,11 @@ interface Message {
   timestamp: string;
   type: 'text' | 'image' | 'disappearing';
   isDisappearing?: boolean;
+  replyTo?: {
+    id: number;
+    content: string;
+    sender: string;
+  };
 }
 
 interface ChatViewProps {
@@ -16,7 +21,7 @@ interface ChatViewProps {
 }
 
 const ChatView = ({ chatId, onBack }: ChatViewProps) => {
-  const [messages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       content: 'Salut! Comment ça va?',
@@ -49,11 +54,46 @@ const ChatView = ({ chatId, onBack }: ChatViewProps) => {
   ]);
 
   const [newMessage, setNewMessage] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      console.log('Sending message:', newMessage);
+      const message: Message = {
+        id: Date.now(),
+        content: newMessage,
+        sender: 'me',
+        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        type: 'text',
+        replyTo: replyingTo ? {
+          id: replyingTo.id,
+          content: replyingTo.content,
+          sender: replyingTo.sender === 'me' ? 'Vous' : 'Sarah'
+        } : undefined
+      };
+      
+      setMessages(prev => [...prev, message]);
       setNewMessage('');
+      setReplyingTo(null);
+    }
+  };
+
+  const handleReply = (message: Message) => {
+    setReplyingTo(message);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const message: Message = {
+        id: Date.now(),
+        content: file.type.startsWith('image/') ? 'Photo envoyée' : 'Fichier envoyé',
+        sender: 'me',
+        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        type: 'image'
+      };
+      
+      setMessages(prev => [...prev, message]);
     }
   };
 
@@ -103,32 +143,94 @@ const ChatView = ({ chatId, onBack }: ChatViewProps) => {
             className={`flex animate-fade-in ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-              message.sender === 'me' 
-                ? 'gradient-friamis text-white' 
-                : 'bg-muted text-foreground'
-            } ${message.isDisappearing ? 'animate-pulse border-2 border-friamis-orange' : ''}`}>
-              {message.isDisappearing && (
-                <div className="flex items-center text-xs mb-1 opacity-70">
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                  Disparaîtra après lecture
+            <div 
+              className={`max-w-xs lg:max-w-md group relative ${
+                message.sender === 'me' ? 'ml-auto' : 'mr-auto'
+              }`}
+              onDoubleClick={() => handleReply(message)}
+            >
+              {/* Reply indicator */}
+              {message.replyTo && (
+                <div className={`mb-1 px-3 py-1 text-xs bg-muted/50 rounded-lg border-l-2 ${
+                  message.sender === 'me' ? 'border-friamis-purple' : 'border-border'
+                }`}>
+                  <span className="font-medium">{message.replyTo.sender}: </span>
+                  <span className="opacity-70">{message.replyTo.content}</span>
                 </div>
               )}
-              <p className="text-sm">{message.content}</p>
-              <p className={`text-xs mt-1 opacity-70`}>
-                {message.timestamp}
-              </p>
+              
+              <div className={`px-4 py-2 rounded-2xl ${
+                message.sender === 'me' 
+                  ? 'gradient-friamis text-white' 
+                  : 'bg-muted text-foreground'
+              } ${message.isDisappearing ? 'animate-pulse border-2 border-friamis-orange' : ''}`}>
+                {message.isDisappearing && (
+                  <div className="flex items-center text-xs mb-1 opacity-70">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Disparaîtra après lecture
+                  </div>
+                )}
+                <p className="text-sm">{message.content}</p>
+                <p className={`text-xs mt-1 opacity-70`}>
+                  {message.timestamp}
+                </p>
+              </div>
+
+              {/* Reply button on hover */}
+              <button
+                onClick={() => handleReply(message)}
+                className="absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-background border border-border rounded-full hover:bg-muted"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+              </button>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Reply indicator */}
+      {replyingTo && (
+        <div className="px-4 py-2 bg-muted/30 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4 text-friamis-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+              <span className="text-sm text-muted-foreground">
+                Répondre à: {replyingTo.content}
+              </span>
+            </div>
+            <button 
+              onClick={() => setReplyingTo(null)}
+              className="p-1 hover:bg-muted rounded"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Input */}
       <div className="p-4 border-t border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="flex items-center space-x-3">
-          <button className="p-2 text-friamis-purple hover:bg-friamis-purple/10 rounded-full transition-colors">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*,video/*"
+            className="hidden"
+          />
+          
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-friamis-purple hover:bg-friamis-purple/10 rounded-full transition-colors"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
             </svg>

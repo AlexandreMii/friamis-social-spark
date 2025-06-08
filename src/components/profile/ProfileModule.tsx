@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import EditProfile from './EditProfile';
 
 const ProfileModule = () => {
   const [userStats] = useState({
@@ -8,6 +8,16 @@ const ProfileModule = () => {
     likes: 8901,
     videos: 42
   });
+
+  const [userProfile, setUserProfile] = useState({
+    username: '@ton_username',
+    bio: 'Créateur de contenu 🎨 | Danse & Lifestyle ✨ | Friamis depuis 2025 🚀',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+    website: '',
+    isPrivate: false
+  });
+
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   const [userVideos] = useState([
     {
@@ -48,6 +58,10 @@ const ProfileModule = () => {
     }
   ]);
 
+  const handleSaveProfile = (newData: any) => {
+    setUserProfile(newData);
+  };
+
   return (
     <div className="h-full bg-background overflow-y-auto">
       {/* Profile Header */}
@@ -59,20 +73,33 @@ const ProfileModule = () => {
         <div className="px-4 pb-6">
           <div className="flex items-end justify-between -mt-16 mb-4">
             <img 
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" 
+              src={userProfile.avatar} 
               alt="Mon profil"
               className="w-24 h-24 rounded-full border-4 border-background"
             />
-            <button className="mb-2 px-6 py-2 gradient-friamis text-white rounded-full text-sm font-medium hover:scale-105 transition-transform">
+            <button 
+              onClick={() => setShowEditProfile(true)}
+              className="mb-2 px-6 py-2 gradient-friamis text-white rounded-full text-sm font-medium hover:scale-105 transition-transform"
+            >
               Modifier
             </button>
           </div>
           
           <div className="space-y-2">
-            <h1 className="text-xl font-bold">@ton_username</h1>
+            <h1 className="text-xl font-bold">{userProfile.username}</h1>
             <p className="text-muted-foreground">
-              Créateur de contenu 🎨 | Danse & Lifestyle ✨ | Friamis depuis 2025 🚀
+              {userProfile.bio}
             </p>
+            {userProfile.website && (
+              <a 
+                href={userProfile.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-friamis-purple text-sm hover:underline"
+              >
+                {userProfile.website}
+              </a>
+            )}
             
             {/* Stats */}
             <div className="flex items-center space-x-6 pt-3">
@@ -161,6 +188,14 @@ const ProfileModule = () => {
           ))}
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <EditProfile
+          onClose={() => setShowEditProfile(false)}
+          onSave={handleSaveProfile}
+        />
+      )}
     </div>
   );
 };
